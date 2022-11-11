@@ -1,1 +1,1 @@
-# Elements-of-Sttatistical-Learning
+# Elements-of-Statistical-Learning
