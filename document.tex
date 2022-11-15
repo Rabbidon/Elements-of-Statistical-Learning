@@ -1,0 +1,80 @@
+\documentclass{article}
+\usepackage{enumitem}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+\newcommand{\chapternumber}{1}
+\title{Elements of Statistical Learning - Questions and Solutions}
+\author{Edwin Fennell}
+\date{}
+\newenvironment{QandA}{\begin{enumerate}[label=\chapternumber.\arabic*]\bfseries\boldmath}
+	{\end{enumerate}}
+\newenvironment{answered}{\par\bigskip\normalfont\unboldmath}{}
+\usepackage{lipsum}
+\pagestyle{empty}
+\begin{document}
+	\maketitle
+	
+	\noindent%
+	\begin{QandA}
+		\item Suppose each of K-classes has an associated target $t_k$, which is a
+		vector of all zeros, except a one in the kth position. Show that classifying to
+		the largest element of $\hat{y}$ amounts to choosing the closest target,  $\min_{k}\|t_k-\hat{y}\|$, if the elements of $\hat{y}$ sum to one.
+		\begin{answered}
+			Suppose that the largest element of $\hat{y}$ is the $i$-th one, s.t. $t_i\cdot y\geq t_j\cdot y$ $\forall j$. Then it is clear that
+			\[\|t_k-\hat{y}\|^2=(t_k-\hat{y})\cdot(t_k-\hat{y})=1+\hat{y}\cdot\hat{y}-2t_k\cdot y\]
+			is minimised for $k=i$, and thus so is $\|t_k-\hat{y}\|$. 
+		\end{answered}
+	
+	\item Show how to compute the Bayes decision boundary for the simulation example in Figure 2.5.
+	\begin{answered}
+		The decision boundary is where the generating densities for the two classes are equal. Given that we know the exact generating desities for our two classes across the entire state space, this is easy to determine.
+	\end{answered}
+
+	\item Derive equation 2.24
+	\begin{answered}
+		Imagine that we have $N$ points uniformly distributed on the p-dimensional unit ball. The probably that a point lies at a distance at most $r$ from the origin is given by $r^p$. The p.d.f. of this function is thus $pr^{p-1}$. The p.d.f. of the distance of the closest point to the origin is thus
+		\[Npr^{p-1}(1-r^p)^{N-1}\]
+		This is derived from the p.d.f. for a single point conditioned on the fact that all other points are further away than this point, and then with a factor of $N$ due to symmetry between points.
+		To get the median value of this distance, we take the corresponding c.d.f., equate to $\frac{1}{2}$ and solve for $r$. The equation is
+		\[1-(1-r^p)^N=\frac{1}{2}\]
+		which rearranges to
+		\[r=\left(1-\left(\frac{1}{2}\right)^\frac{1}{N}\right)^\frac{1}{p}\]
+		as required.
+		
+	\end{answered}
+
+	\item The edge effect problem discussed on page 23 is not peculiar to
+	uniform sampling from bounded domains. Consider inputs drawn from a
+	spherical multinormal distribution $X \sim N (0,I_p)$. The squared distance
+	from any sample point to the origin has a $\chi^2_p$ distribution with mean p.
+	Consider a prediction point $x_0$ drawn from this distribution, and let $a =
+	\frac{x0}{\|x0\|}$ be an associated unit vector. Let $z_i = a^Tx_i$ be the projection of
+	each of the training points on this direction.
+	Show that the $z_i$ are distributed $N (0, 1)$ with expected squared distance
+	from the origin 1, while the target point has expected squared distance p
+	from the origin.
+	Hence for p = 10, a randomly drawn test point is about 3.1 standard
+	deviations from the origin, while all the training points are on average
+	one standard deviation along direction a. So most prediction points see
+	themselves as lying on the edge of the training set.
+	
+	\begin{answered}
+		Our spherical multinormal distribution has total spherical symmetry - density is purely a function of distance from the origin. Therefore rotating our frame of reference after choosing $a$ yields WLOG $a_i=\delta_{0i}$. Therefore $a^Tx_i$ is just distributed as $(x_i)_0$, which from the definition of our multivariate normal is distributed as $N(0,1)$.
+		I'm not really sure that this is at all meaningful.
+	\end{answered}
+
+	\item 
+	\begin{itemize}
+		\item Derive equation (2.27). The last line makes use of (3.8) through a
+		conditioning argument.
+		\item Derive equation (2.28), making use of the cyclic property of the trace
+		operator [trace(AB) = trace(BA)], and its linearity (which allows us
+		to interchange the order of trace and expectation).
+	\end{itemize}
+	
+	\end{QandA}
+	
+\end{document}
