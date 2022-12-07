@@ -48,7 +48,7 @@
 
 	\item The edge effect problem discussed on page 23 is not peculiar to
 	uniform sampling from bounded domains. Consider inputs drawn from a
-	spherical multinormal distribution $X \sim N (0,I_p)$. The squared distance
+	spherical multivariate normal distribution $X \sim N (0,I_p)$. The squared distance
 	from any sample point to the origin has a $\chi^2_p$ distribution with mean p.
 	Consider a prediction point $x_0$ drawn from this distribution, and let $a =
 	\frac{x0}{\|x0\|}$ be an associated unit vector. Let $z_i = a^Tx_i$ be the projection of
@@ -62,7 +62,7 @@
 	themselves as lying on the edge of the training set.
 	
 	\begin{answered}
-		Our spherical multinormal distribution has total spherical symmetry - density is purely a function of distance from the origin. Therefore rotating our frame of reference after choosing $a$ yields WLOG $a_i=\delta_{0i}$. Therefore $a^Tx_i$ is just distributed as $(x_i)_0$, which from the definition of our multivariate normal is distributed as $N(0,1)$.
+		Our spherical multivariate normal distribution has total spherical symmetry - density is purely a function of distance from the origin. Therefore rotating our frame of reference after choosing $a$ yields WLOG $a_i=\delta_{0i}$. Therefore $a^Tx_i$ is just distributed as $(x_i)_0$, which from the definition of our multivariate normal is distributed as $N(0,1)$.
 		I'm not really sure that this is at all meaningful.
 	\end{answered}
 
@@ -74,6 +74,64 @@
 		operator [trace(AB) = trace(BA)], and its linearity (which allows us
 		to interchange the order of trace and expectation).
 	\end{itemize}
+
+	\begin{answered}
+		The context here is that we have an independent variable $X$ and a dependent variable $Y$ with the relationship
+		\[Y=X^T\beta+\epsilon\]
+		where $\epsilon\sim N(0,\sigma^2)$. We can jointly observe $X,Y$ but don't know $\beta$. We make a bunch of observations $x_i,y_i$ and then calculate a value $\hat{\beta}$ for $\beta$ that minimises the L2 error. Given our model $\hat{\beta}$ and a test point $x_0$, we want to find the expected (squared) prediction error from our predicted value
+		\[\hat{y}_0=x_0^T\hat{\beta}\]
+		from the actual "noisy" observed value
+		\[y_0=x_0^T\beta+\epsilon\]
+		(A bit of notation abuse here - we defined $\epsilon$ as a random variable, and are here using it to mean a specific observation of that random variable)
+		
+		The quantity we want is therefore
+		\[EPE(x_0)=E((y_0-\hat{y_0})^2)\]
+		but what exactly are we taking the expectation over? The way we have set up our system allows our training inputs and test input to vary freely, and we already have training and test noise. If all of these are held constant than all the values above are completely determined, so these four things can be used to completely parametrise our state space. Here we are conditioning on a fixed value for our test point, $x_0$, so we reduce our state space to three variables - our training points $\textbf{X}$, our training error $\textbf{e}$, and our test error $y_0|x_0$, all of which are mutually independent of each other. 
+		
+		We can simplify our expression for the EPE by noting that 
+		\[\hat{\beta}=(\textbf{X}\textbf{X}^T)^{-1}\textbf{X}(\textbf{X}^T\beta+\textbf{e})=\beta+(\textbf{X}\textbf{X}^T)^{-1}\textbf{X}\textbf{e}\]
+		and therefore
+		\[y_0-\hat{y}_0=\epsilon-x_0^T(\textbf{X}\textbf{X}^T)^{-1}\textbf{X}\textbf{e}\]
+		Note that the first term is dependent only on $y_0|x_0$ and the second term is dependent only on $\textbf{X},\textbf{e}$. In addition the expectation of each term is 0 since $E(\epsilon)=0$, $E(\textbf{e})=\textbf{0}$, and $\textbf{X},\textbf{e}$ are indpendent of each other. Therefore 
+		\[EPE(x_0)=E(\epsilon^2)+E((x_0^T(\textbf{X}\textbf{X}^T)^{-1}\textbf{X}\textbf{e})^2)\]
+		The first term simply evaluates to $\sigma^2$
+		We can simplify the tensor composition by writing
+		\[(x_0^T(\textbf{X}\textbf{X}^T)^{-1}\textbf{X}\textbf{e})^2=x_0^T(\textbf{X}\textbf{X}^T)^{-1}\textbf{X}\textbf{e}\textbf{e}^T\textbf{X}^T(\textbf{X}^T\textbf{X})^{-1}x_0\]
+		When we expand this expression, we end up with an $\textbf{e}\textbf{e}^T$ term in the middle surrounded by things independent of $\textbf{e}$. Therefore we have
+		\[E(x_0^T(\textbf{X}\textbf{X}^T)^{-1}\textbf{X}\textbf{e}\textbf{e}^T\textbf{X}^T(\textbf{X}^T\textbf{X})^{-1}x_0) = E(x_0^T(\textbf{X}\textbf{X}^T)^{-1}\textbf{X}E(\textbf{e}\textbf{e}^T)\textbf{X}^T(\textbf{X}^T\textbf{X})^{-1}x_0)\]
+		$E(\textbf{e}\textbf{e}^T)$ is just $\sigma^2\textbf{I}$, and so we can cancel out a bunch of the middle terms to get
+		\[E(\sigma^2x_0^T(\textbf{X}^T\textbf{X})^{-1}x_0)\]
+		The only variable left that we are taking the expectation over is $\textbf{X}$, and so we finally have
+		\[EPE(x_0)=\sigma^2+\sigma^2x_0^TE_\textbf{X}((\textbf{X}^T\textbf{X})^{-1})x_0\]
+		as required.
+		For the second part, we assume $E(\textbf{X})=0$, take the expectation of this expression over $x_0$, and consider what happens if we pick a very large number of training samples. Assuming some sane regularity conditions on the distribution of $X$, we obtain
+		\[\frac{1}{N}\textbf{X}^T\textbf{X}\xrightarrow[a.s./\text{in probabilty}]{}Cov(X)\]
+		by the strong law of large numbers.
+		We make an appeal to suffix notation to get
+		\[E_{x_0}(EPE(x_0)) \sim \sigma^2+\sigma^2E((x_0)_i(x_0)_j)(Cov(X)^{-1}/N)_{ij}\]
+		But the matrix with $(i,j)$-th element $E((x_0)_i(x_0)_j)$ is just $Cov(x_0)=Cov(X)$. Therefore 
+		\[E_{x_0}(EPE(x_0))\sim\sigma^2(p/N)+\sigma^2\]
+		as required.
+	\end{answered}
+
+	\item Consider a regression problem with inputs $x_i$ and outputs $y_i$, and a
+	parameterized model $f_\theta (x)$ to be fit by least squares. Show that if there are
+	observations with tied or identical values of x, then the fit can be obtained
+	from a reduced weighted least squares problem.
+	
+	\begin{answered}
+		Consider the expression
+		\[\sum_{i=1}^n (y_1-f_\theta(x))^2\]
+		for positive $a_i$
+		When we write this out in full as a quadratic in terms of $f_\theta(x)$ we obtain
+		\[\sum_{i=1}^n(y_i^2-2y_if_\theta(x)+f_\theta(x)^2)\]
+		We complete the square and take out a constant factor to obtain
+		\[n\left(\frac{\sum_{i=1}^ny_i}{n}-f_\theta(x)\right)^2+c\]
+		where c is a constant we don't care about.
+		
+		This shows that in any sum of squared errors, we can replace any sum of terms with the same $x$-value by a single term weighted by multiplicity and the $y-value$ replaced by the average $y$-value for those terms, plus a constant. Since we are trying to maximise the expression over $\theta\in\Theta$, we can just ignore the constants and are left with a weighted least squares.
+		
+	\end{answered}
 	
 	\end{QandA}
 	
